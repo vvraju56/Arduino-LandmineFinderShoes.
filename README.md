@@ -27,11 +27,65 @@ An ESP32-based wearable system that detects landmines using a metal detector sen
 | 17 | GPS TX |
 | 32 | Metal detector input |
 | 18 | Motor PWM output |
+| 21 | I2C SDA |
+| 22 | I2C SCL |
 
-## I2C Configuration
+## Connection Flowchart
 
-- SDA: GPIO 21
-- SCL: GPIO 22
+```
+                         ┌─────────────┐
+                         │    ESP32    │
+                         └──────┬──────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+          ▼                     ▼                     ▼
+   ┌──────────── ┌─────────────┐     ─┐      ┌─────────────┐
+   │    GPS     │      │   BMP180    │      │   Metal     │
+   │  Module    │      │  Sensor    │      │  Detector   │
+   └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
+          │                     │                     │
+    TX→RX │               I2C   │               INPUT │
+   (GPIO17)                  (GPIO21,22)        (GPIO32)
+                                  │                     │
+                                  │              ┌─────┴─────┐
+                                  │              │ 57kΩ      │
+                                  │              │ Pulldown   │
+                                  │              └───────────┘
+                                  │
+                                  └────────┐
+                                           │
+                                    ┌───────▼───────┐
+                                    │  Vibration   │
+                                    │    Motor      │
+                                    └───────┬───────┘
+                                            │
+                                      PWM   │
+                                     (GPIO18)
+```
+
+## Wiring Details
+
+### GPS Module
+- GPS TX → ESP32 GPIO 16 (RX)
+- GPS RX → ESP32 GPIO 17 (TX)
+- VCC → 3.3V
+- GND → GND
+
+### BMP180 Sensor
+- SDA → ESP32 GPIO 21
+- SCL → ESP32 GPIO 22
+- VCC → 3.3V
+- GND → GND
+
+### Metal Detector
+- Signal → ESP32 GPIO 32
+- GND → GND
+- Add 57kΩ pulldown resistor to GPIO 32
+
+### Vibration Motor
+- Positive → ESP32 GPIO 18 (via MOSFET)
+- Negative → GND
 
 ## Installation
 
